@@ -1,29 +1,24 @@
-name: pr
+name: test-next-push
 
 on:
   push:
     branches: [ next ]
-
   workflow_dispatch:
 
 concurrency: prr:pre-release
 
 jobs:
-  pr:
+  test:
+    uses: ./.github/workflows/test.yml
 
+  publish-prerelease:
+    needs: test
     runs-on: ubuntu-latest
-
-    strategy:
-      matrix:
-        node-version: [16.x]
-
     steps:
-    - uses: actions/checkout@v3
-    - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v3
+    - uses: actions/checkout@v4
+    - uses: actions/setup-node@v4
       with:
-        node-version: ${{ matrix.node-version }}
-        cache: 'npm'
+        node-version: 20
     - run: npm ci
     - run: npm run build
     - run: npx pr-release pr --verbose --target master --source next --compact --verbose --minimize-semver-change
